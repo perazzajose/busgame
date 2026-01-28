@@ -271,7 +271,7 @@ body {
 
     <div class="player-card">
         <p>Nombre del jugador</p>
-        <input id="playerName" placeholder="Tu nombre">
+        <input id="playerName" type="text"  placeholder="Tu nombre">
     </div>
 
     <div class="skins">
@@ -460,11 +460,11 @@ function ElegirSkin(png) {
     if (png === "dino2.png") empresaSeleccionada = "CYNSA";
     if (png === "dino3.png") empresaSeleccionada = "RUTAS";
     dino.querySelector("img").src = png;
-    if (EsMobile() && !document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-        document.querySelector(".game-wrapper").style.pointerEvents = "auto";
-        
-    }
+   if (EsMobile() && !document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+}
+
+document.querySelector(".game-wrapper").style.pointerEvents = "auto";
     document.getElementById("menu-skins").style.display = "none";
 CargarRankingMenu();
     juegoIniciado = true;
