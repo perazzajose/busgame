@@ -211,6 +211,33 @@ body {
     width:160px;
     margin-top:8px;
 }
+@media (max-height: 500px) {
+
+    #menu-skins {
+        padding: 10px;
+        overflow-y: auto;
+       
+    touch-action: auto;
+
+    }
+
+    .skins {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .skin-card {
+        width: 220px;
+        height: auto;
+    }
+
+    #ranking-menu {
+        width: 100%;
+        max-width: 280px;
+        margin-top: 15px;
+    }
+}
+
 </style>
 </head>
 
@@ -424,6 +451,9 @@ function ElegirSkin(png) {
     if (png === "dino2.png") empresaSeleccionada = "CYNSA";
     if (png === "dino3.png") empresaSeleccionada = "RUTAS";
     dino.querySelector("img").src = png;
+    if (EsMobile() && !document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
     document.getElementById("menu-skins").style.display = "none";
 CargarRankingMenu();
     juegoIniciado = true;
@@ -508,13 +538,6 @@ contenedorJuego.addEventListener("touchstart", e => {
     Saltar();
 }, { passive: false });
 
-document.body.addEventListener("touchstart", () => {
-    if (!EsMobile()) return;
-
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-    }
-}, { once: true });
 
 function MoverDino() {
     if (deltaTime <= 0 || isNaN(deltaTime)) return;
