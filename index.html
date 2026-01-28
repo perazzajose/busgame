@@ -500,6 +500,13 @@ CheckOrientation();
 function EsMobile() {
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
+const contenedorJuego = document.querySelector(".contenedor");
+
+contenedorJuego.addEventListener("touchstart", e => {
+    if (!juegoIniciado) return; // 👈 clave
+    e.preventDefault();
+    Saltar();
+}, { passive: false });
 
 document.body.addEventListener("touchstart", () => {
     if (!EsMobile()) return;
