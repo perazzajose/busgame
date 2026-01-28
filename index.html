@@ -17,7 +17,7 @@ html, body {
 }
 
 body {
-  
+    touch-action: manipulation;
 
     background: #584040;
     display: flex;
@@ -56,8 +56,6 @@ body {
     height:280px;
     position:relative;
     overflow:hidden;
-    touch-action: manipulation;
-
 }
 
 /* ===== DINO ===== */
@@ -271,59 +269,65 @@ body {
 <div id="menu-skins">
     <h2>Elegí tu ómnibus</h2>
 
-    <div class="player-card">
-        <p>Nombre del jugador</p>
-        <input id="playerName" type="text"  placeholder="Tu nombre">
+    <!-- NUEVO CONTENEDOR -->
+    <div class="menu-layout">
+
+        <div class="player-card">
+            <p>Nombre del jugador</p>
+            <input id="playerName" type="text" placeholder="Tu nombre">
+        </div>
+
+        <div class="skins">
+            <div class="skin-card" onclick="ElegirSkin('dino.png')">
+                <div class="preview" style="background-image:url('dino.png')"></div>
+                <p>COT</p>
+            </div>
+            <div class="skin-card" onclick="ElegirSkin('dino2.png')">
+                <div class="preview" style="background-image:url('dino2.png')"></div>
+                <p>Cynsa</p>
+            </div>
+            <div class="skin-card" onclick="ElegirSkin('dino3.png')">
+                <div class="preview" style="background-image:url('dino3.png')"></div>
+                <p>Rutas del Sol</p>
+            </div>
+        </div>
+
     </div>
 
-    <div class="skins">
-        <div class="skin-card" onclick="ElegirSkin('dino.png')">
-            <div class="preview" style="background-image:url('dino.png')"></div>
-            <p>COT</p>
-        </div>
-        <div class="skin-card" onclick="ElegirSkin('dino2.png')">
-            <div class="preview" style="background-image:url('dino2.png')"></div>
-            <p>Cynsa</p>
-        </div>
-        <div class="skin-card" onclick="ElegirSkin('dino3.png')">
-            <div class="preview" style="background-image:url('dino3.png')"></div>
-            <p>Rutas del Sol</p>
-        </div>
-    </div>
     <div id="ranking-menu" style="
-    margin-top:25px;
-    background:#eee;
-    color:#333;
-    padding:15px;
-    border-radius:8px;
-    width:320px;
-    text-align:center;
-">
-    <b>🏆 TOP 5</b>
-    <div id="ranking-menu-list" style="margin-top:10px;"></div>
-</div>
-
+        margin-top:25px;
+        background:#eee;
+        color:#333;
+        padding:15px;
+        border-radius:8px;
+        width:320px;
+        text-align:center;
+    ">
+        <b>🏆 TOP 5</b>
+        <div id="ranking-menu-list" style="margin-top:10px;"></div>
+    </div>
 </div>
 
 <div class="game-wrapper">
-<div class="game">
-<div class="contenedor">
-    <div class="suelo"></div>
-    <div class="dino"><img src="dino.png"></div>
-    <div class="score">0</div>
-    <div class="game-over">GAME OVER</div>
-    <div id="ranking" style="
-    position:absolute;
-    top:160px;
-    width:100%;
-    text-align:center;
-    color:#fff;
-    font-size:18px;
-    display:none;
-"></div>
+    <div class="game">
+        <div class="contenedor">
+            <div class="suelo"></div>
+            <div class="dino"><img src="dino.png"></div>
+            <div class="score">0</div>
+            <div class="game-over">GAME OVER</div>
+            <div id="ranking" style="
+                position:absolute;
+                top:160px;
+                width:100%;
+                text-align:center;
+                color:#fff;
+                font-size:18px;
+                display:none;
+            "></div>
+        </div>
+    </div>
 </div>
-</div>
-</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     /* ===== SUPABASE ===== */
