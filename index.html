@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ómnibus Runner</title>
+
+<style>
+/* ===== RESET ===== */
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+body {
+    touch-action: manipulation;
+
+    background: #584040;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-family: Verdana;
+
+    /* Safe areas (notch) */
+    padding:
+      env(safe-area-inset-top)
+      env(safe-area-inset-right)
+      env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
+}
+
+
+/* ===== WRAPPER PARA ESCALA ===== */
+.game-wrapper {
+    width:100vw;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.game {
+    image-rendering: pixelated;
+    transform-origin: center center;
+}
+
+/* ===== ESCENARIO ===== */
+.contenedor {
+    width:920px;
+    height:280px;
+    position:relative;
+    overflow:hidden;
+}
+
+/* ===== DINO ===== */
+.dino {
+    width:100px;
+    height:50px;
+    position:absolute;
+    left:42px;
+    bottom:22px;
+    z-index:5;
+}
+
+.dino img {
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    image-rendering:pixelated;
+}
+
+/* ===== SUELO ===== */
+.suelo {
+    width:200%;
+    height:42px;
+    position:absolute;
+    bottom:0;
+    background:url(suelo.png) repeat-x;
+    background-size:50% 42px;
+    z-index:3;
+  
+    left:0;
+}
+
+
+
+/* ===== OBSTÁCULOS (BASE) ===== */
+.obstaculo {
+    position:absolute;
+    bottom:16px;
+    width:45px;
+    height:45px;
+    background-repeat:no-repeat;
+    background-position:center;
+    background-size:contain;
+    z-index:5;
+}
+
+/* TIPOS */
+.cactus  { background-image:url(cactus1.png); }
+.cactus2 { background-image:url(cactus2.png); }
+.barrera { background-image:url(barrera.png); width:55px; }
+.auto    { background-image:url(auto.png); width:65px; }
+
+/* ===== NUBES ===== */
+.nube {
+    position: absolute;
+    width: 46px;
+    height: 14px;
+
+    background-image: url("nube.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+
+    z-index: 0;
+    pointer-events: none;
+}
+
+
+/* ===== FONDOS TRAMOS ===== */
+.bg-tramo {
+    position: absolute;
+    bottom: 28px; /* MISMO nivel que el dino */
+    width: 500px;
+    height: 160px;
+
+    background-repeat: no-repeat;
+    background-position: bottom center;
+    background-size: contain;
+
+    image-rendering: pixelated;
+    pointer-events: none;
+
+    z-index: 1; /* detrás del suelo */
+}
+
+
+/* ===== UI ===== */
+.score {
+    position:absolute;
+    top:5px;
+    right:15px;
+    font-size:30px;
+    font-weight:bold;
+    color:#d48871;
+}
+
+.game-over {
+    position:absolute;
+    width:100%;
+    top:120px;
+    text-align:center;
+    font-size:30px;
+    font-weight:bold;
+    color:#7e928b;
+    display:none;
+}
+
+/* ===== MENU SKINS ===== */
+#menu-skins {
+    position:fixed;
+    inset:0;
+    background:#3b2f2f;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+    color:white;
+}
+
+.skins { display:flex; gap:20px; margin-top:15px; }
+
+.skin-card {
+    width:150px;
+    height:190px;
+    background:#eee;
+    border-radius:8px;
+    cursor:pointer;
+    padding:10px;
+    text-align:center;
+    color:#333;
+}
+
+.preview {
+    width:100px;
+    height:50px;
+    margin:auto;
+    background-size:contain;
+    background-repeat:no-repeat;
+    image-rendering:pixelated;
+}
+
+/* INPUT NOMBRE */
+.player-card {
+    background:#eee;
+    padding:15px;
+    border-radius:8px;
+    margin-bottom:15px;
+    color:#333;
+    text-align:center;
+}
+
+.player-card input {
+    padding:6px;
+    width:160px;
+    margin-top:8px;
+}
+</style>
+</head>
+
+<body>
+<div id="rotate-warning" style="
+    position:fixed;
+    inset:0;
+    background:#000;
+    color:white;
+    display:none;
+    justify-content:center;
+    align-items:center;
+    font-size:24px;
+    z-index:10000;
+    text-align:center;
+">
+    📱 Girá el celular<br>para jugar
+</div>
+
+<div id="menu-skins">
+    <h2>Elegí tu ómnibus</h2>
+
+    <div class="player-card">
+        <p>Nombre del jugador</p>
+        <input id="playerName" placeholder="Tu nombre">
+    </div>
+
+    <div class="skins">
+        <div class="skin-card" onclick="ElegirSkin('dino.png')">
+            <div class="preview" style="background-image:url('dino.png')"></div>
+            <p>COT</p>
+        </div>
+        <div class="skin-card" onclick="ElegirSkin('dino2.png')">
+            <div class="preview" style="background-image:url('dino2.png')"></div>
+            <p>Cynsa</p>
+        </div>
+        <div class="skin-card" onclick="ElegirSkin('dino3.png')">
+            <div class="preview" style="background-image:url('dino3.png')"></div>
+            <p>Rutas del Sol</p>
+        </div>
+    </div>
+    <div id="ranking-menu" style="
+    margin-top:25px;
+    background:#eee;
+    color:#333;
+    padding:15px;
+    border-radius:8px;
+    width:320px;
+    text-align:center;
+">
+    <b>🏆 TOP 5</b>
+    <div id="ranking-menu-list" style="margin-top:10px;"></div>
+</div>
+
+</div>
+
+<div class="game-wrapper">
+<div class="game">
+<div class="contenedor">
+    <div class="suelo"></div>
+    <div class="dino"><img src="dino.png"></div>
+    <div class="score">0</div>
+    <div class="game-over">GAME OVER</div>
+    <div id="ranking" style="
+    position:absolute;
+    top:160px;
+    width:100%;
+    text-align:center;
+    color:#fff;
+    font-size:18px;
+    display:none;
+"></div>
+</div>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    /* ===== SUPABASE ===== */
+    async function CargarRankingMenu() {
+    const cont = document.getElementById("ranking-menu-list");
+
+    const { data, error } = await supabaseClient
+        .from("scores")
+        .select("player_name, score, empresa")
+        .order("score", { ascending: false })
+        .limit(5);
+
+    if (error || !data) {
+        cont.innerHTML = "Error cargando ranking";
+        return;
+    }
+
+    cont.innerHTML = "";
+
+    data.forEach((r, i) => {
+        cont.innerHTML += `
+          <div style="margin-bottom:6px;">
+            ${i + 1}. ${r.player_name} ${r.empresa} — <b>${r.score}</b>
+          </div>
+        `;
+    });
+}
+let colisionesActivas = true;
+const SUPABASE_URL = "https://wpejrhaaqbibqwzliffk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_vLM9t7ythx-PAvQE70s_fQ_g96Dcsnh";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+async function GuardarScoreOnline() {
+    const nombreInput = document.getElementById("playerName");
+    const nombre = nombreInput && nombreInput.value.trim() !== ""
+        ? nombreInput.value.trim()
+        : "Anonimo";
+
+    try {
+        await supabaseClient
+  .from("scores")
+  .insert([{
+    player_name: nombre,
+    score: score,
+    empresa: empresaSeleccionada
+  }]);
+    } catch (e) {
+        console.error("Error guardando score", e);
+    }
+}
+async function CargarRanking() {
+    const rankingDiv = document.getElementById("ranking");
+
+    const { data, error } = await supabaseClient
+        .from("scores")
+        .select("player_name, score")
+        .order("score", { ascending: false })
+        .limit(5);
+
+    if (error || !data) return;
+
+    rankingDiv.style.display = "block";
+    rankingDiv.innerHTML = "<b>🏆 TOP 5 Choferes</b><br><br>";
+
+    data.forEach((r, i) => {
+        rankingDiv.innerHTML += `${i + 1}. ${r.player_name} — ${r.score}<br>`;
+    });
+}
+document.getElementById("ranking").style.display = "none";
+
+/* ===== ESCALA ===== */
+let currentScale = 1;
+function ScaleGame() {
+    const game = document.querySelector('.game');
+
+    const scaleX = window.innerWidth / 920;
+    const scaleY = window.innerHeight / 280;
+
+    currentScale = Math.min(scaleX, scaleY);
+
+    game.style.transform = `scale(${currentScale})`;
+}
+
+window.addEventListener('resize', ScaleGame);
+ScaleGame();
+
+/* ===== ESTADO ===== */
+let juegoIniciado = false;
+
+/* ===== VARIABLES ===== */
+let time = new Date(), deltaTime = 0;
+let sueloY = 22, velY = 0, impulso = 900, gravedad = 2500;
+let dinoPosY = sueloY, sueloX = 0, velEscenario = 1000 / 3;
+let score = 0, parado = false;
+
+let obstaculos = [], tiempoHastaObstaculo = 2;
+let nubes = [], tiempoHastaNube = 1;
+
+let fondosTramo = [];
+let eventosTramo = [
+    { score: 1,  img: "tramo1_a.png", x: 0, usado: false },//CHUY
+    { score: 5, img: "tramo1_b.png", x: 0, usado: false },//ADUANA
+    { score: 35,  img: "tramo3_a.png", x: 0, usado: false },//FORTLAEZA
+    { score: 35,  img: "tramo3_b.png", x: 0, usado: false },//CORONILLA
+    { score: 25, img: "tramo2_a.png",   x: 0, usado: false },//PUNTA DEL DIABLO
+    { score: 35,  img: "tramo2_b.png", x: 0, usado: false },//PUNTA DEL DIABLO
+    { score: 50, img: "tramo4_a.png", x: 0, usado: false },//CASTILLOS
+    { score: 55, img: "tramo5_a.png",   x: 0, usado: false },//ROCHA
+    { score: 35,  img: "tramo6_a.png", x: 0, usado: false },//PAN DE AZUCAR
+    { score: 35,  img: "tramo7_a.png", x: 0, usado: false },//ARCO DE SALINAS
+    { score: 35,  img: "tramo8_a.png", x: 0, usado: false },//PEAJE PANDO
+    { score: 35,  img: "tramo9_a.png", x: 0, usado: false },//TRES CRUCES
+];
+
+/* ===== ELEMENTOS ===== */
+const contenedor = document.querySelector(".contenedor");
+const dino = document.querySelector(".dino");
+const suelo = document.querySelector(".suelo");
+const textoScore = document.querySelector(".score");
+const gameOver = document.querySelector(".game-over");
+
+/* ===== OBSTÁCULOS ===== */
+const TIPOS_OBSTACULO = [
+    { clase: "cactus", minScore: 0 },
+    { clase: "cactus2", minScore: 0 },
+    { clase: "barrera", minScore: 20 },
+    { clase: "auto", minScore: 50 }
+];
+
+/* ===== SKINS ===== */
+function ElegirSkin(png) {
+    if (png === "dino.png") empresaSeleccionada = "COT";
+    if (png === "dino2.png") empresaSeleccionada = "CYNSA";
+    if (png === "dino3.png") empresaSeleccionada = "RUTAS";
+    dino.querySelector("img").src = png;
+    document.getElementById("menu-skins").style.display = "none";
+CargarRankingMenu();
+    juegoIniciado = true;
+    parado = false;
+    score = 0;
+    textoScore.textContent = score;
+
+    obstaculos.forEach(o => o.remove());
+    obstaculos = [];
+
+    fondosTramo.forEach(f => f.remove());
+    fondosTramo = [];
+    eventosTramo.forEach(e => e.usado = false);
+
+    nubes.forEach(n => n.remove());
+    nubes = [];
+
+    dinoPosY = sueloY;
+    velY = 0;
+
+    time = new Date();
+}
+
+/* ===== LOOP ===== */
+function Loop() {
+    deltaTime = (new Date() - time) / 1000;
+    time = new Date();
+    Update();
+    requestAnimationFrame(Loop);
+}
+Loop();
+
+/* ===== UPDATE ===== */
+function Update() {
+    if (!juegoIniciado || parado) return;
+
+    velY -= gravedad * deltaTime;
+    velEscenario = 1000 / 3 + score * 3;
+
+    MoverDino();
+    MoverSuelo();
+
+    CrearObstaculos();
+    MoverObstaculos();
+
+    CrearNubes();
+    MoverNubes();
+
+    CrearFondosTramo();
+    MoverFondosTramo();
+
+    DetectarColision();
+}
+
+/* ===== DINO ===== */
+document.addEventListener("keydown", e => {
+    if (e.code === "Space" && dinoPosY === sueloY) velY = impulso;
+});
+document.addEventListener("touchstart", e => {
+    e.preventDefault();
+    Saltar();
+}, { passive: false });
+function CheckOrientation() {
+    const warning = document.getElementById("rotate-warning");
+    if (window.innerHeight > window.innerWidth) {
+        warning.style.display = "flex";
+    } else {
+        warning.style.display = "none";
+    }
+}
+
+window.addEventListener("resize", CheckOrientation);
+CheckOrientation();
+function EsMobile() {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+document.body.addEventListener("touchstart", () => {
+    if (!EsMobile()) return;
+
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
+}, { once: true });
+
+function MoverDino() {
+    if (deltaTime <= 0 || isNaN(deltaTime)) return;
+
+    dinoPosY += velY * deltaTime;
+
+    if (dinoPosY <= sueloY) {
+        dinoPosY = sueloY;
+        velY = 0;
+    }
+
+    if (isNaN(dinoPosY)) {
+        dinoPosY = sueloY;
+        velY = 0;
+    }
+
+    dino.style.bottom = dinoPosY + "px";
+}
+
+/* ===== SUELO ===== */
+function MoverSuelo() {
+    sueloX += velEscenario * deltaTime;
+    suelo.style.left = -(sueloX % 920) + "px";
+}
+
+/* ===== NUBES ===== */
+function CrearNubes() {
+    tiempoHastaNube -= deltaTime;
+    if (tiempoHastaNube > 0) return;
+
+    let n = document.createElement("div");
+    n.className = "nube";
+    n.posX = 920;
+    n.posY = 160 + Math.random() * 40;
+
+    n.style.left = n.posX + "px";
+    n.style.bottom = n.posY + "px";
+
+    contenedor.appendChild(n);
+    nubes.push(n);
+
+    tiempoHastaNube = 2 + Math.random() * 3;
+}
+
+function MoverNubes() {
+    for (let i = nubes.length - 1; i >= 0; i--) {
+        let n = nubes[i];
+        n.posX -= velEscenario * deltaTime * 0.3;
+        n.style.left = n.posX + "px";
+
+        if (n.posX < -100) {
+            n.remove();
+            nubes.splice(i, 1);
+        }
+    }
+}
+
+/* ===== FONDOS TRAMOS ===== */
+function CrearFondosTramo() {
+    eventosTramo.forEach(e => {
+        if (!e.usado && score >= e.score) {
+            let bg = document.createElement("div");
+            bg.className = "bg-tramo";
+            bg.style.backgroundImage = `url(${e.img})`;
+            bg.posX = 920 + e.x;
+            bg.style.left = bg.posX + "px";
+
+            contenedor.appendChild(bg);
+            fondosTramo.push(bg);
+            e.usado = true;
+        }
+    });
+}
+
+function MoverFondosTramo() {
+    for (let i = fondosTramo.length - 1; i >= 0; i--) {
+        let bg = fondosTramo[i];
+        bg.posX -= velEscenario * deltaTime;
+        bg.style.left = bg.posX + "px";
+
+        if (bg.posX < -400) {
+            bg.remove();
+            fondosTramo.splice(i, 1);
+        }
+    }
+}
+
+/* ===== OBSTÁCULOS ===== */
+function CrearObstaculos() {
+    tiempoHastaObstaculo -= deltaTime;
+    if (tiempoHastaObstaculo > 0) return;
+
+    const disponibles = TIPOS_OBSTACULO.filter(t => score >= t.minScore);
+    const tipo = disponibles[Math.floor(Math.random() * disponibles.length)];
+
+    let o = document.createElement("div");
+    o.className = "obstaculo " + tipo.clase;
+    o.posX = 920;
+    o.style.left = o.posX + "px";
+
+    contenedor.appendChild(o);
+    obstaculos.push(o);
+
+    let dificultad = Math.min(score * 0.02, 1);
+    tiempoHastaObstaculo = 1.5 - dificultad + Math.random() * 0.8;
+}
+
+function MoverObstaculos() {
+    for (let i = obstaculos.length - 1; i >= 0; i--) {
+        let o = obstaculos[i];
+        o.posX -= velEscenario * deltaTime;
+        o.style.left = o.posX + "px";
+
+        if (o.posX < -100) {
+            o.remove();
+            obstaculos.splice(i, 1);
+            score++;
+            textoScore.textContent = score;
+        }
+    }
+}
+let empresaSeleccionada = "COT";
+/* ===== COLISIONES ===== */
+function DetectarColision() {
+    obstaculos.forEach(o => {
+        if (IsCollision(dino, o, 8, 8, 8, 8)) GameOver();
+    });
+}
+
+function IsCollision(a, b, pt, pr, pb, pl) {
+    const ar = a.getBoundingClientRect();
+    const br = b.getBoundingClientRect();
+    return !(
+        ar.bottom - pb * currentScale < br.top ||
+        ar.top + pt * currentScale > br.bottom ||
+        ar.right - pr * currentScale < br.left ||
+        ar.left + pl * currentScale > br.right
+    );
+}
+
+function GameOver() {
+    parado = true;
+    gameOver.style.display = "block";
+    GuardarScoreOnline();
+    
+}
+CargarRankingMenu();
+function Saltar() {
+    if (dinoPosY === sueloY) {
+        velY = impulso;
+        gravedad = gravedadFlotado;
+    }
+}
+</script>
+
+
+</body>
+</html>
